@@ -1,10 +1,9 @@
 window.COPILOT_WORKSTREAMS = [
   "Citizen Intake",
+  "Issue Clustering",
   "Jurisdiction And Ownership",
   "Evidence Collection",
   "Stakeholder Coordination",
-  "Scheme And Initiative Tracking",
-  "Parliamentary Research",
   "Public Communication",
   "Follow-Up And Closure",
   "Governance And Privacy",
@@ -13,285 +12,264 @@ window.COPILOT_WORKSTREAMS = [
 
 window.COPILOT_STEPS = [
   {
-    title: "Civic issue enters intake",
-    readiness: 16,
-    label: "Case framed",
-    prompt: "Residents from a Bengaluru South ward say a proposed road expansion and flyover package may worsen local traffic, remove trees, and affect pedestrians. They mention there was no clear public consultation and ask the MP office to intervene before the project moves ahead.",
-    response: "The input is a civic case, not a generic complaint. The office needs to preserve the citizen concern, identify the exact location and project reference, separate claims from evidence, and decide whether the first action is information gathering, consultation support, or escalation.",
-    affected: ["Citizen Intake", "Evidence Collection", "Jurisdiction And Ownership", "Public Communication"],
+    title: "Civic complaints enter intake",
+    readiness: 14,
+    label: "Raw inputs captured",
+    prompt: "Residents from a Bengaluru South ward report a pothole that is affecting daily commuters. Some type the complaint in English, some send Kannada voice notes, some attach photos, and some describe the location using nearby shops and landmarks.",
+    response: "The input is not one neat form submission. It is a set of citizen signals that may refer to the same civic issue. The office needs to preserve every complaint, extract location and evidence signals, and decide whether these are separate issues or one shared case.",
+    affected: ["Citizen Intake", "Issue Clustering", "Evidence Collection", "Governance And Privacy"],
     select: "Citizen Intake",
     updates: {
       "Citizen Intake": {
         status: "in_discovery",
-        note: "Citizen concern converted into a structured civic case.",
-        logged: ["Concern: road expansion and flyover package may affect traffic, trees, pedestrians, and consultation quality.", "Request: MP office intervention before project progress."],
-        missing: ["Exact location and ward.", "Project name or tender reference.", "Photos, maps, complaint IDs, or meeting records.", "Number of affected residents and groups."],
-        risks: ["The office may respond to emotion before verifying the project facts."],
-        questions: ["What is the exact project, who raised the issue, and what evidence has already been collected?"]
+        note: "Free-form citizen inputs converted into structured intake records.",
+        logged: [
+          "Complaint types: typed notes, voice inputs, photos, landmarks and location descriptions.",
+          "Issue theme: pothole affecting local commuters in a Bengaluru South ward."
+        ],
+        missing: ["Precise location.", "Number of unique complainants.", "Photo quality.", "Consent for public use of citizen material."],
+        risks: ["A normal form-based workflow may split one public issue into many disconnected records."],
+        questions: ["Do these complaints describe one pothole, multiple potholes on the same stretch, or separate road issues?"]
+      },
+      "Issue Clustering": {
+        status: "missing_evidence",
+        note: "Similarity check pending.",
+        missing: ["Language translation.", "Photo comparison.", "Landmark extraction.", "Approximate geocode."]
       },
       "Evidence Collection": {
         status: "missing_evidence",
-        note: "Core evidence is still absent.",
-        missing: ["DPR or project brief.", "Traffic study.", "Tree impact note.", "Public consultation record.", "Budget source and implementing agency."],
-        questions: ["Which documents must be obtained before the office takes a public position?"]
+        note: "Evidence needs source tagging.",
+        missing: ["Photo timestamp.", "Road stretch.", "Traffic impact evidence.", "Repeat complaint history."]
       },
-      "Jurisdiction And Ownership": {
-        status: "missing_evidence",
-        note: "Authority map pending.",
-        missing: ["Implementing agency.", "Approving department.", "State and city-level owners.", "Any central government linkage."],
-        risks: ["The office may be blamed for decisions outside its direct authority if ownership is unclear."]
-      },
-      "Public Communication": {
+      "Governance And Privacy": {
         status: "at_risk",
-        note: "Public response requires evidence discipline.",
-        missing: ["Verified facts.", "Current status of project.", "Office action boundary."],
-        risks: ["Premature messaging can create commitments the office cannot responsibly keep."]
+        note: "Citizen submissions may contain personal data.",
+        missing: ["Consent rule.", "PII cleanup.", "Storage owner.", "Allowed-public-use policy."]
       }
     }
   },
   {
-    title: "Jurisdiction map changes the action route",
-    readiness: 28,
-    label: "Ownership emerging",
-    prompt: "Initial review suggests BBMP and a state-level urban mobility body own the project. The MP office can support public consultation, request documents, coordinate with citizen groups, and raise central-government dependencies if any are found.",
-    response: "The office role becomes sharper. Direct execution may sit elsewhere, but the MP office can still add value through evidence requests, public consultation discipline, stakeholder convening, and parliamentary or ministry routes when the facts justify it.",
-    affected: ["Jurisdiction And Ownership", "Stakeholder Coordination", "Parliamentary Research", "Public Communication"],
+    title: "AI detects one shared issue",
+    readiness: 29,
+    label: "Duplicates clustered",
+    prompt: "More than 100 residents submit complaints over two days. The descriptions vary, but the photos show the same broken road surface and the landmark references point to the same junction.",
+    response: "The co-pilot clusters the complaints into one actionable pothole case while retaining each citizen record. This prevents the office from treating one issue as 100 unrelated tickets and allows one verified responder update to inform all affected citizens.",
+    affected: ["Issue Clustering", "Citizen Intake", "Evidence Collection", "Institutional Memory"],
+    select: "Issue Clustering",
+    updates: {
+      "Issue Clustering": {
+        status: "ready_for_review",
+        note: "Complaints clustered into one likely civic case.",
+        logged: [
+          "Cluster basis: similar photos, overlapping landmarks, same ward, close submission timing.",
+          "Citizen records retained while operational case is merged."
+        ],
+        missing: ["Human confirmation of cluster.", "Confidence threshold.", "Boundary for near-duplicate issues."],
+        decisions: ["Treat this as one case for operational follow-up, while preserving all complainant records for updates."]
+      },
+      "Citizen Intake": {
+        status: "ready_for_review",
+        note: "Duplicate records linked to the same case.",
+        logged: ["100+ citizen complaints mapped to one pothole case."]
+      },
+      "Evidence Collection": {
+        status: "in_discovery",
+        note: "Photo and location evidence consolidated.",
+        missing: ["Best representative images.", "Before/after evidence requirement.", "Severity assessment."]
+      },
+      "Institutional Memory": {
+        status: "in_discovery",
+        note: "Duplicate-handling pattern can become reusable.",
+        questions: ["What similarity signals should future complaint clusters inherit?"]
+      }
+    }
+  },
+  {
+    title: "Jurisdiction determines the route",
+    readiness: 42,
+    label: "Owner identified",
+    prompt: "The clustered case points to a ward road maintained by BBMP. The MP office cannot directly repair the pothole, but can route the issue to the right official, track response, and escalate if citizen safety is at risk.",
+    response: "The office role becomes sharper. The co-pilot separates direct ownership from coordination responsibility, identifies the likely department, and prepares a routed evidence pack for the responsible authority.",
+    affected: ["Jurisdiction And Ownership", "Stakeholder Coordination", "Public Communication", "Follow-Up And Closure"],
     select: "Jurisdiction And Ownership",
     updates: {
       "Jurisdiction And Ownership": {
-        status: "in_discovery",
-        note: "Primary ownership sits with city and state actors.",
-        logged: ["Likely owners: BBMP and state-level urban mobility authority.", "MP office role: document request, citizen consultation support, convening, and escalation where justified."],
-        missing: ["Named official owner.", "Current project approval status.", "Legal route for public consultation.", "Central ministry or railway dependency, if any."],
-        decisions: ["Frame the office role as evidence-led coordination and escalation within authority limits."],
-        questions: ["Which action is available to the MP office today without overstating direct control?"]
+        status: "ready_for_review",
+        note: "Likely authority route identified.",
+        logged: [
+          "Likely owner: BBMP ward-level road maintenance function.",
+          "Office role: route, follow up, escalate where justified, and inform citizens."
+        ],
+        missing: ["Named official.", "Official complaint channel.", "SLA or expected response time.", "Escalation contact."],
+        decisions: ["Do not frame the office as the direct execution owner. Frame it as evidence-led coordination and follow-up."]
       },
       "Stakeholder Coordination": {
-        status: "missing_evidence",
-        note: "Stakeholder list needs depth.",
-        missing: ["Resident welfare associations.", "Ward-level leaders.", "Traffic experts.", "Pedestrian and accessibility groups.", "Relevant officials."],
-        questions: ["Who must be heard before the office treats this as a representative public concern?"]
-      },
-      "Parliamentary Research": {
-        status: "missing_evidence",
-        note: "Parliamentary route depends on central linkage.",
-        missing: ["Whether the project uses central funds, national policy, rail, highway, environment, or metro dependencies."],
-        risks: ["A parliamentary question may be weak if the matter is purely city or state execution."]
+        status: "in_discovery",
+        note: "Authority and ward stakeholder map required.",
+        missing: ["Ward engineer.", "Local elected representative.", "Traffic police if safety issue is severe."]
       },
       "Public Communication": {
         status: "ready_for_review",
-        note: "Communication boundary clarified.",
-        decisions: ["Public note should say the office is seeking documents and consultation clarity before forming a final view."]
+        note: "Citizen update boundary clarified.",
+        decisions: ["Tell citizens the case has been clustered and routed, without promising a repair date until the authority confirms."]
+      },
+      "Follow-Up And Closure": {
+        status: "missing_evidence",
+        note: "Follow-up cadence pending.",
+        missing: ["Date of routing.", "Reminder schedule.", "Escalation threshold.", "Closure evidence."]
       }
     }
   },
   {
-    title: "Evidence request becomes the first operating task",
-    readiness: 39,
-    label: "Evidence plan active",
-    prompt: "The team decides to request the DPR, traffic impact study, tree and pedestrian impact assessment, consultation notice, minutes of any public meeting, budget note, and implementation timeline. Volunteers can collect photos and citizen statements from the affected stretches.",
-    response: "The case now has an evidence plan. The co-pilot separates official documents from field evidence and citizen testimony, then assigns each evidence type to an owner and review path.",
-    affected: ["Evidence Collection", "Stakeholder Coordination", "Follow-Up And Closure", "Governance And Privacy"],
+    title: "Evidence pack is prepared for response",
+    readiness: 55,
+    label: "Evidence ready",
+    prompt: "The office prepares a response pack containing the issue summary, mapped location, representative photos, number of affected citizens, safety risk, previous complaint IDs if available, and the requested action from the authority.",
+    response: "The co-pilot turns citizen frustration into a usable evidence packet. It keeps the responder's cognitive load low while keeping the office's records traceable and reviewable.",
+    affected: ["Evidence Collection", "Jurisdiction And Ownership", "Governance And Privacy", "Follow-Up And Closure"],
     select: "Evidence Collection",
     updates: {
       "Evidence Collection": {
         status: "ready_for_review",
-        note: "Evidence checklist and collection routes defined.",
-        logged: ["Requested documents: DPR, traffic impact study, tree and pedestrian assessment, consultation notice, meeting minutes, budget note, implementation timeline.", "Field evidence: photos and citizen statements from affected stretches."],
-        missing: ["Document request recipient.", "Date by which documents are expected.", "Format for volunteer field submissions."],
-        decisions: ["Separate official documents, field observations, and citizen testimony in the evidence pack."]
-      },
-      "Stakeholder Coordination": {
-        status: "in_discovery",
-        note: "Volunteer role introduced.",
-        logged: ["Volunteers can collect photos and citizen statements."],
-        missing: ["Volunteer briefing note.", "Verification rules.", "Escalation owner for sensitive claims."]
-      },
-      "Follow-Up And Closure": {
-        status: "missing_evidence",
-        note: "Follow-up cadence needed.",
-        missing: ["Document request date.", "Reminder schedule.", "Escalation threshold.", "Closure definition."]
+        note: "Responder evidence pack drafted.",
+        logged: [
+          "Evidence pack: summary, location, representative photos, citizen count, safety risk, previous complaint IDs, requested action."
+        ],
+        missing: ["Final human review.", "Photo anonymisation.", "Official routing format."],
+        decisions: ["Use representative evidence rather than forwarding every raw complaint."]
       },
       "Governance And Privacy": {
-        status: "at_risk",
-        note: "Citizen statements need privacy controls.",
-        missing: ["Consent language.", "Personal-data minimization.", "Storage owner.", "Public-use approval rule."],
-        risks: ["Citizen identities and locations may be exposed if field evidence is handled casually."]
-      }
-    }
-  },
-  {
-    title: "Public consultation becomes a workstream",
-    readiness: 49,
-    label: "Consultation route shaped",
-    prompt: "Citizen groups ask for a public consultation before further execution. The office wants to convene residents, urban mobility experts, accessibility advocates, BBMP officials, and elected representatives, while keeping the discussion fact-based and civil.",
-    response: "The office can turn public concern into a structured consultation. The co-pilot defines who should be invited, what evidence should be reviewed, which questions should be answered, and what record should be preserved after the meeting.",
-    affected: ["Stakeholder Coordination", "Public Communication", "Evidence Collection", "Institutional Memory"],
-    select: "Stakeholder Coordination",
-    updates: {
-      "Stakeholder Coordination": {
         status: "ready_for_review",
-        note: "Consultation stakeholder map drafted.",
-        logged: ["Participants: residents, urban mobility experts, accessibility advocates, BBMP officials, and elected representatives."],
-        missing: ["Final attendee list.", "Moderator.", "Agenda.", "Evidence pre-read.", "Meeting record owner."],
-        decisions: ["Use a structured consultation format with evidence review and recorded action items."],
-        questions: ["Which voices are affected but under-represented in the current citizen group?"]
-      },
-      "Public Communication": {
-        status: "ready_for_review",
-        note: "Consultation message can be prepared.",
-        decisions: ["Invite public inputs while stating that the office is collecting facts before recommending a route."]
-      },
-      "Evidence Collection": {
-        status: "ready_for_review",
-        note: "Evidence pack required before consultation.",
-        missing: ["Pre-read summary.", "Verified project map.", "Known open questions."]
-      },
-      "Institutional Memory": {
-        status: "in_discovery",
-        note: "Consultation template can be reused.",
-        logged: ["Reusable need: consultation agenda, evidence pre-read, minutes format, decision log."],
-        questions: ["What template should future civic consultations inherit from this case?"]
-      }
-    }
-  },
-  {
-    title: "Parliamentary and policy route is assessed",
-    readiness: 57,
-    label: "Policy route assessed",
-    prompt: "Research finds the issue may connect to urban mobility coordination, pedestrian safety, accessibility, and disclosure of DPRs for major infrastructure projects. The team considers a policy note or parliamentary question if the central linkage is strong enough.",
-    response: "The issue can become more than a local grievance if it reveals a repeatable governance problem. The co-pilot captures the potential policy angle while keeping the local case and parliamentary route separate.",
-    affected: ["Parliamentary Research", "Scheme And Initiative Tracking", "Jurisdiction And Ownership", "Institutional Memory"],
-    select: "Parliamentary Research",
-    updates: {
-      "Parliamentary Research": {
-        status: "in_discovery",
-        note: "Potential policy angle identified.",
-        logged: ["Themes: urban mobility coordination, pedestrian safety, accessibility, DPR disclosure, public consultation standards."],
-        missing: ["Central linkage.", "Comparable city precedents.", "Legal or regulatory basis.", "Draft question or policy note outline."],
-        decisions: ["Keep the local case route separate from the policy route until the central linkage is verified."],
-        questions: ["Is this a constituency grievance, a city governance issue, or a national policy question?"]
-      },
-      "Scheme And Initiative Tracking": {
-        status: "in_discovery",
-        note: "Related public initiatives may provide context.",
-        missing: ["Relevant mobility schemes.", "Accessibility initiatives.", "Public-space improvement commitments.", "Known office initiatives in similar areas."]
+        note: "Privacy gate added before external routing.",
+        missing: ["Remove phone numbers, faces, house numbers or other unnecessary personal details."]
       },
       "Jurisdiction And Ownership": {
         status: "ready_for_review",
-        note: "Local and policy routes separated.",
-        decisions: ["Track city/state action and parliamentary research as different routes with different owners."]
-      },
-      "Institutional Memory": {
-        status: "in_discovery",
-        note: "Issue pattern may become reusable.",
-        logged: ["Potential pattern: infrastructure proposal with weak citizen-facing evidence and consultation record."]
-      }
-    }
-  },
-  {
-    title: "Governance gates communication",
-    readiness: 52,
-    label: "Review gate active",
-    prompt: "The office prepares a public update but marks it for human review because official documents are pending, citizen statements contain personal details, and the project authority has not yet responded.",
-    response: "The co-pilot lowers operating confidence until governance is clean. Public communication must separate verified facts, citizen concerns, office action, and pending responses.",
-    affected: ["Governance And Privacy", "Public Communication", "Evidence Collection", "Follow-Up And Closure"],
-    select: "Governance And Privacy",
-    updates: {
-      "Governance And Privacy": {
-        status: "blocked",
-        note: "Public update needs approval and privacy cleanup.",
-        logged: ["Documents pending.", "Citizen statements include personal details.", "Project authority response pending."],
-        missing: ["Reviewer approval.", "Anonymized citizen evidence.", "Fact/source table.", "Allowed claims list."],
-        risks: ["The office can create reputational and privacy risk by publishing unverified or personally identifiable information."],
-        questions: ["Which claims are verified enough for public communication today?"]
-      },
-      "Public Communication": {
-        status: "retry_needed",
-        note: "Message needs fact boundaries.",
-        missing: ["Verified facts.", "Pending facts.", "Office action taken.", "Next update date."],
-        decisions: ["Use a factual holding update until documents and authority response arrive."]
-      },
-      "Evidence Collection": {
-        status: "ready_for_review",
-        note: "Evidence must be source-tagged.",
-        missing: ["Source table and verification status for each claim."]
+        note: "Evidence pack aligned to authority route."
       },
       "Follow-Up And Closure": {
         status: "in_discovery",
-        note: "Next update date needed.",
-        missing: ["Follow-up owner.", "Authority response deadline.", "Citizen update cadence."]
+        note: "Closure evidence must be defined before routing.",
+        questions: ["What proof will count as closure: authority response, repair photo, citizen confirmation, or field verification?"]
       }
     }
   },
   {
-    title: "Follow-up plan turns concern into movement",
-    readiness: 71,
-    label: "Action plan reviewable",
-    prompt: "The office creates a follow-up plan: send document requests, schedule consultation, assign volunteer verification, track authority response, draft a factual public update, and prepare a policy note if the issue reveals a repeatable governance gap.",
-    response: "The case is now operational. The co-pilot turns concern into a sequence of responsible actions with owners, evidence gates, and closure criteria.",
-    affected: ["Follow-Up And Closure", "Public Communication", "Parliamentary Research", "Institutional Memory"],
+    title: "One responder update reaches every affected citizen",
+    readiness: 68,
+    label: "Update loop drafted",
+    prompt: "The responsible official acknowledges the routed case and says inspection will happen within 48 hours. The office wants to update all complainants without manually replying to each complaint.",
+    response: "Because the complaints were clustered, one verified update can be translated and sent back to all linked citizens. The update preserves the official response, expected timeline, and next follow-up date.",
+    affected: ["Public Communication", "Citizen Intake", "Follow-Up And Closure", "Governance And Privacy"],
+    select: "Public Communication",
+    updates: {
+      "Public Communication": {
+        status: "ready_for_review",
+        note: "Citizen update drafted from official response.",
+        logged: [
+          "Message: case acknowledged, inspection expected within 48 hours, next follow-up date recorded."
+        ],
+        missing: ["Language variants.", "Approval by office owner.", "Channel selection."]
+      },
+      "Citizen Intake": {
+        status: "approved",
+        note: "All linked complainants can receive the same case update."
+      },
+      "Follow-Up And Closure": {
+        status: "ready_for_review",
+        note: "Next check-in date added.",
+        decisions: ["Trigger reminder if inspection confirmation is not received within 48 hours."]
+      },
+      "Governance And Privacy": {
+        status: "ready_for_review",
+        note: "External message requires human approval before sending."
+      }
+    }
+  },
+  {
+    title: "Escalation keeps the case moving",
+    readiness: 76,
+    label: "Escalation rule active",
+    prompt: "No inspection evidence is received after 48 hours. New photos show the pothole has worsened after rain. The office needs to escalate without losing the original record.",
+    response: "The co-pilot reopens the case with new evidence, updates risk level, suggests the next escalation contact, and prepares a concise follow-up note that includes the original complaint cluster and the missed response window.",
+    affected: ["Follow-Up And Closure", "Stakeholder Coordination", "Evidence Collection", "Public Communication"],
     select: "Follow-Up And Closure",
     updates: {
       "Follow-Up And Closure": {
+        status: "retry_needed",
+        note: "SLA missed; escalation required.",
+        logged: [
+          "Inspection not confirmed after 48 hours.",
+          "New citizen photos indicate worsening road condition after rain."
+        ],
+        missing: ["Escalation owner.", "Updated authority contact.", "Revised timeline."],
+        decisions: ["Escalate with evidence of missed response, not only citizen dissatisfaction."]
+      },
+      "Evidence Collection": {
         status: "ready_for_review",
-        note: "Action plan has owners and sequence.",
-        logged: ["Actions: document requests, consultation scheduling, volunteer verification, authority response tracking, factual public update, policy note if justified."],
-        missing: ["Named owners.", "Dates.", "Escalation rules.", "Closure criteria."],
-        decisions: ["Move the case through evidence request, consultation, authority response, communication, and closure review."]
+        note: "New evidence appended to original case.",
+        logged: ["Rain-related worsening evidence added."]
+      },
+      "Stakeholder Coordination": {
+        status: "in_discovery",
+        note: "Escalation stakeholder map updated."
       },
       "Public Communication": {
-        status: "ready_for_review",
-        note: "Factual update can be drafted after review.",
-        decisions: ["Public update should report actions taken and pending facts without promising outcome."]
-      },
-      "Parliamentary Research": {
-        status: "ready_for_review",
-        note: "Policy note is conditional.",
-        decisions: ["Prepare a policy note only if evidence shows a repeatable governance gap beyond the local project."]
-      },
-      "Institutional Memory": {
-        status: "ready_for_review",
-        note: "Reusable operating pattern defined.",
-        logged: ["Reusable pattern: issue intake, authority map, evidence pack, consultation format, communication review, closure log."]
+        status: "at_risk",
+        note: "Citizen update should be factual and avoid overpromising.",
+        risks: ["Public communication can create pressure but must remain accurate."]
       }
     }
   },
   {
-    title: "Institutional memory becomes the final artifact",
-    readiness: 84,
-    label: "Case ready for execution",
-    prompt: "Before closing the intake phase, the office wants the case to leave behind a reusable evidence checklist, jurisdiction map, consultation template, communication review checklist, and handover note for future civic infrastructure cases.",
-    response: "The prototype treats each case as a way to strengthen the office. The output is not only a response to one issue, but an operating asset that future staff, volunteers, and leaders can reuse.",
-    affected: ["Institutional Memory", "Follow-Up And Closure", "Governance And Privacy", "Citizen Intake"],
+    title: "Closure becomes institutional memory",
+    readiness: 88,
+    label: "Case asset created",
+    prompt: "The pothole is repaired and citizens confirm the road is usable. The office wants to close the case, send a final update, and retain a reusable operating template for future civic complaints.",
+    response: "The case is closed only after repair evidence and citizen confirmation are recorded. The co-pilot converts the case into a reusable template for future complaint clustering, jurisdiction routing, evidence packs, public updates and escalation rules.",
+    affected: ["Institutional Memory", "Follow-Up And Closure", "Citizen Intake", "Public Communication"],
     select: "Institutional Memory",
     updates: {
-      "Citizen Intake": { status: "approved", note: "Case intake is structured and reviewable." },
-      "Jurisdiction And Ownership": { status: "approved", note: "Authority map is explicit." },
-      "Evidence Collection": { status: "ready_for_review", note: "Evidence checklist and sources are defined." },
-      "Stakeholder Coordination": { status: "ready_for_review", note: "Consultation route is drafted." },
-      "Scheme And Initiative Tracking": { status: "ready_for_review", note: "Related initiatives and schemes can be monitored." },
-      "Parliamentary Research": { status: "ready_for_review", note: "Policy route is conditional and evidence-led." },
-      "Public Communication": { status: "ready_for_review", note: "Public updates require fact and privacy review." },
+      "Citizen Intake": {
+        status: "approved",
+        note: "All linked complainants received closure update."
+      },
+      "Issue Clustering": {
+        status: "approved",
+        note: "Duplicate complaints successfully handled as one case while preserving citizen records."
+      },
+      "Jurisdiction And Ownership": {
+        status: "approved",
+        note: "Authority route verified for this issue type."
+      },
+      "Evidence Collection": {
+        status: "approved",
+        note: "Before and after evidence recorded."
+      },
+      "Stakeholder Coordination": {
+        status: "approved",
+        note: "Responder and escalation contacts stored for reuse."
+      },
+      "Public Communication": {
+        status: "approved",
+        note: "Final citizen update ready."
+      },
       "Follow-Up And Closure": {
         status: "approved",
-        note: "Follow-up plan is execution-ready.",
-        decisions: ["Close intake only after owners, dates, authority response path, and citizen update cadence are documented."],
-        missing: ["Final dates and named staff owners."]
+        note: "Closure criteria met.",
+        logged: ["Repair evidence received.", "Citizen confirmation received.", "Final update prepared."]
       },
       "Governance And Privacy": {
         status: "ready_for_review",
-        note: "Review gates remain active.",
-        decisions: ["Human approval required before external communication or escalation using citizen evidence."]
+        note: "Retain only required records and remove unnecessary personal data."
       },
       "Institutional Memory": {
         status: "case_asset",
-        note: "Reusable office asset created.",
-        logged: ["Reusable outputs: evidence checklist, jurisdiction map, consultation template, communication review checklist, handover note."],
-        decisions: ["Store the case as a future template for civic infrastructure issues."],
-        missing: ["Final handover owner.", "Repository location.", "Review cadence."],
-        risks: ["Institutional learning will be lost if artifacts are not maintained after the immediate case pressure drops."],
-        questions: ["Who owns the template after this case is closed?"]
+        note: "Reusable civic complaint resolution template created.",
+        logged: [
+          "Template: intake fields, clustering signals, jurisdiction route, evidence pack, update cadence, escalation rule, closure proof."
+        ],
+        questions: ["Which other issue types should inherit this operating pattern?"]
       }
     }
   }
